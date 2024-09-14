@@ -32,11 +32,11 @@ function SignedIn() {
   const { user } = useUser();
   const [ saved, setSaved ] = useState(false);
   const addUser = useAction(api.functions.addUser);
-  const userData = useQuery(api.functions.checkUser, { id: user?.id || "" })?.userData;
 
   const name = user?.fullName || "Anonymous";
   const email = user?.emailAddresses[0].emailAddress || "Unknown";
   const phone = user?.phoneNumbers[0].phoneNumber || "Unknown";
+  const userData = useQuery(api.functions.checkUser, { phone: phone || "" })?.userData;
 
   useEffect(() => {
     if (user) {

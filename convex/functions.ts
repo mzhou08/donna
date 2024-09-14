@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { createClerkClient } from "@clerk/backend";
+import { httpAction } from "./_generated/server";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -12,7 +13,7 @@ const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY 
 export const checkUser = query({
   // Validators for arguments.
   args: {
-    id: v.string(),
+    phone: v.string(),
   },
 
   // Query implementation.
@@ -21,7 +22,7 @@ export const checkUser = query({
     //// See https://docs.convex.dev/database/reading-data.
     const userData = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("id"), args.id))
+      .filter((q) => q.eq(q.field("phone"), args.phone))
       .collect();
 
     return {
@@ -29,6 +30,19 @@ export const checkUser = query({
     };
   },
 });
+
+export const getUserApi = httpAction(async (ctx, request) => {
+  const { phone } = await request.json();
+
+  const userData = await ctx.runQuery(api.functions.checkUser, {
+    phone: phone,
+  });
+
+  return new Response(JSON.stringify(userData), {
+    status: 200,
+  });
+});
+
 
 // You can write data to the database via a mutation:
 export const addUserData = mutation({
