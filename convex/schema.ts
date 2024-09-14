@@ -17,6 +17,12 @@ export default defineSchema(
     numbers: defineTable({
       value: v.number(),
     }),
+    users: defineTable({
+      id: v.string(),
+      name: v.string(),
+      email: v.string(),
+      phone: v.string(),
+    }),
   },
   // If you ever get an error about schema mismatch
   // between your data and your schema, and you cannot

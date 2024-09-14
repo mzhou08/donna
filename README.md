@@ -6,7 +6,7 @@ HackMIT 2024 - Your AI-powered personal assistant
 This template provides a minimal setup to get Convex working, with TypeScript,
 ESLint and React using [Vite](https://vitejs.dev/). It uses [Clerk](https://clerk.dev/) for user authentication.
 
-Start by editing `convex/myFunctions.ts` and interact with your React app.
+Start by editing `convex/functions.ts` and interact with your React app.
 
 See Convex docs at https://docs.convex.dev/home
 

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignInButton, useUser } from "@clerk/clerk-react";
 import {
   Authenticated,
   Unauthenticated,
@@ -7,13 +7,13 @@ import {
   useQuery,
 } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { Header } from "@/components/Header.tsx";
+import { useEffect, useState } from "react";
 
 export default function App() {
   return (
     <main className="container max-w-2xl flex flex-col gap-8">
-      <h1 className="text-4xl font-extrabold my-8 text-center">
-        Convex + React (Vite) + Clerk Auth
-      </h1>
+      <Header />
       <Authenticated>
         <SignedIn />
       </Authenticated>
@@ -29,62 +29,44 @@ export default function App() {
 }
 
 function SignedIn() {
-  const { numbers, viewer } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
-    }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
+  const { user } = useUser();
+  const [ saved, setSaved ] = useState(false);
+  const addUser = useMutation(api.functions.addUser);
+  const userData = useQuery(api.functions.checkUser, { id: user?.id || "" })?.userData;
+
+  const name = user?.fullName || "Anonymous";
+  const email = user?.emailAddresses[0].emailAddress || "Unknown";
+  const phone = user?.phoneNumbers[0].phoneNumber || "Unknown";
+
+  useEffect(() => {
+    if (user) {
+      const id = user.id;
+
+      if (!userData) {
+        void addUser({
+          id,
+          name,
+          email,
+          phone,
+        });
+        setSaved(true);
+      } else {
+        setSaved(true);
+      }
+    }
+  }, [user]);
 
   return (
-    <>
-      <p>Welcome {viewer}!</p>
-      <p className="flex gap-4 items-center">
-        This is you:
-        <UserButton afterSignOutUrl="#" />
-      </p>
-      <p>
-        Click the button below and open this page in another window - this data
-        is persisted in the Convex cloud database!
-      </p>
-      <p>
-        <Button
-          onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
-          }}
-        >
-          Add a random number
-        </Button>
-      </p>
-      <p>
-        Numbers:{" "}
-        {numbers?.length === 0
-          ? "Click the button!"
-          : numbers?.join(", ") ?? "..."}
-      </p>
-      <p>
-        Edit{" "}
-        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-          convex/myFunctions.ts
-        </code>{" "}
-        to change your backend
-      </p>
-      <p>
-        Edit{" "}
-        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-          src/App.tsx
-        </code>{" "}
-        to change your frontend
-      </p>
-      <p>
-        Check out{" "}
-        <a
-          className="font-medium text-primary underline underline-offset-4"
-          target="_blank"
-          href="https://docs.convex.dev/home"
-        >
-          Convex docs
-        </a>
-      </p>
-    </>
+    saved ? (
+      <>
+        <h1 className="text-2xl font-bold">Welcome back, {name}!</h1>
+        <p className="text-gray-500">Your email address is {email}</p>
+        <p className="text-gray-500">Your phone number is {phone}.</p>
+      </>
+    ) : (
+      <>
+        <p>We are still loading your data...</p>
+      </>
+    )
   );
 }

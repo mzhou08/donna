@@ -6,33 +6,35 @@ import { api } from "./_generated/api";
 // See https://docs.convex.dev/functions for more.
 
 // You can read data from the database via a query:
-export const listNumbers = query({
+export const checkUser = query({
   // Validators for arguments.
   args: {
-    count: v.number(),
+    id: v.string(),
   },
 
   // Query implementation.
   handler: async (ctx, args) => {
     //// Read the database as many times as you need here.
     //// See https://docs.convex.dev/database/reading-data.
-    const numbers = await ctx.db
-      .query("numbers")
-      // Ordered by _creationTime, return most recent
-      .order("desc")
-      .take(args.count);
+    const userData = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("id"), args.id))
+      .collect();
+
     return {
-      viewer: (await ctx.auth.getUserIdentity())?.name,
-      numbers: numbers.toReversed().map((number) => number.value),
+      userData: userData.length > 0 ? userData[0] : null,
     };
   },
 });
 
 // You can write data to the database via a mutation:
-export const addNumber = mutation({
+export const addUser = mutation({
   // Validators for arguments.
   args: {
-    value: v.number(),
+    id: v.string(),
+    name: v.string(),
+    email: v.string(),
+    phone: v.string(),
   },
 
   // Mutation implementation.
@@ -41,11 +43,20 @@ export const addNumber = mutation({
     //// Mutations can also read from the database like queries.
     //// See https://docs.convex.dev/database/writing-data.
 
-    const id = await ctx.db.insert("numbers", { value: args.value });
+    const userData = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("id"), args.id))
+      .collect();
 
-    console.log("Added new document with id:", id);
-    // Optionally, return a value from your mutation.
-    // return id;
+    if (userData.length === 0) {
+      const databaseId = await ctx.db.insert("users", {
+        id: args.id,
+        name: args.name,
+        email: args.email,
+        phone: args.phone,
+      });
+      console.log(`Added new document with id: ${databaseId}, name: ${args.name}, email: ${args.email}, phone: ${args.phone}`);
+    }
   },
 });
 
@@ -65,14 +76,17 @@ export const myAction = action({
     // const data = await response.json();
 
     //// Query data by running Convex queries.
-    const data = await ctx.runQuery(api.myFunctions.listNumbers, {
-      count: 10,
+    const data = await ctx.runQuery(api.functions.checkUser, {
+      id: "10",
     });
     console.log(data);
 
     //// Write data by running Convex mutations.
-    await ctx.runMutation(api.myFunctions.addNumber, {
-      value: args.first,
+    await ctx.runMutation(api.functions.addUser, {
+      id: "10",
+      name: "John Doe",
+      email: "",
+      phone: "",
     });
   },
 });
