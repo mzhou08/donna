@@ -3,7 +3,7 @@ import { SignInButton, useUser } from "@clerk/clerk-react";
 import {
   Authenticated,
   Unauthenticated,
-  useMutation,
+  useAction,
   useQuery,
 } from "convex/react";
 import { api } from "../convex/_generated/api";
@@ -31,7 +31,7 @@ export default function App() {
 function SignedIn() {
   const { user } = useUser();
   const [ saved, setSaved ] = useState(false);
-  const addUser = useMutation(api.functions.addUser);
+  const addUser = useAction(api.functions.addUser);
   const userData = useQuery(api.functions.checkUser, { id: user?.id || "" })?.userData;
 
   const name = user?.fullName || "Anonymous";

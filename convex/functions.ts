@@ -1,9 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { createClerkClient } from "@clerk/backend";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
+
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 
 // You can read data from the database via a query:
 export const checkUser = query({
@@ -28,13 +31,14 @@ export const checkUser = query({
 });
 
 // You can write data to the database via a mutation:
-export const addUser = mutation({
+export const addUserData = mutation({
   // Validators for arguments.
   args: {
     id: v.string(),
     name: v.string(),
     email: v.string(),
     phone: v.string(),
+    token: v.string(),
   },
 
   // Mutation implementation.
@@ -54,6 +58,7 @@ export const addUser = mutation({
         name: args.name,
         email: args.email,
         phone: args.phone,
+        token: args.token,
       });
       console.log(`Added new document with id: ${databaseId}, name: ${args.name}, email: ${args.email}, phone: ${args.phone}`);
     }
@@ -61,11 +66,13 @@ export const addUser = mutation({
 });
 
 // You can fetch data from and send data to third-party APIs via an action:
-export const myAction = action({
+export const addUser = action({
   // Validators for arguments.
   args: {
-    first: v.number(),
-    second: v.string(),
+    id: v.string(),
+    name: v.string(),
+    email: v.string(),
+    phone: v.string(),
   },
 
   // Action implementation.
@@ -75,18 +82,19 @@ export const myAction = action({
     // const response = await ctx.fetch("https://api.thirdpartyservice.com");
     // const data = await response.json();
 
-    //// Query data by running Convex queries.
-    const data = await ctx.runQuery(api.functions.checkUser, {
-      id: "10",
-    });
-    console.log(data);
+    const provider = 'oauth_google'
+    const response = await clerkClient.users.getUserOauthAccessToken(args.id, provider).catch((error) => { console.log(error) });
 
-    //// Write data by running Convex mutations.
-    await ctx.runMutation(api.functions.addUser, {
-      id: "10",
-      name: "John Doe",
-      email: "",
-      phone: "",
-    });
+    if (response) {
+      console.log(response.data[0].token)
+
+      await ctx.runMutation(api.functions.addUserData, {
+        id: args.id,
+        name: args.name,
+        email: args.email,
+        phone: args.phone,
+        token: response.data[0].token,
+      });
+    }
   },
 });
