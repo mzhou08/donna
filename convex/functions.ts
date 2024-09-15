@@ -3,6 +3,7 @@ import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { sendMessage } from "./telegramHelper";
+import {addEvent} from "./googleIntegration";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -30,6 +31,11 @@ export const checkUser = query({
   },
 });
 
+const showDate = (date: string) => {
+  const d = new Date(date);
+  return d.toLocaleString('en-US', { timeZone: 'America/New_York' });
+}
+
 export const message = httpAction(async (ctx, request) => {
   const req = await request.json();
 
@@ -44,13 +50,16 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
-      const out = await ctx.runAction(api.googleIntegration.getFreeSlots, { id: userData.id });
+      const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlots, { id: userData.id });
 
-      if (out) {
-        for (const event of out) {
-          const i = out.indexOf(event);
-          await sendMessage(chatId, `Event ${i + 1}: from ${event[0]} to ${event[1]}`);
+      if (freeSlots) {
+        await sendMessage(chatId, "Here are the three timeslots you can book, reply with the slot number you want to book:");
+        for (const event of freeSlots.slice(0, 3)) {
+          const i = freeSlots.indexOf(event);
+          await sendMessage(chatId, `Slot ${i + 1}: from ${showDate(event[0])} to ${showDate(event[1])}`);
         }
+        const event = freeSlots[0];
+        await ctx.runAction(api.googleIntegration.addEvent, { id: userData.id, start: event[0], end: event[1], summary: "Meeting" });
       }
 
     } else {

@@ -6,6 +6,9 @@ import {v} from "convex/values";
 import {createClerkClient} from "@clerk/backend";
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const calendar = google.calendar({ version: "v3" });
 
 const MINIMUM_INTERVAL_MINUTES = 30;  // could be personalized
 
@@ -68,16 +71,12 @@ export const getFreeSlots = action({
     console.log("Running getFreeSlots...");
 
     if (accessToken) {
-      const clientId = process.env.CLIENT_ID;
-      const clientSecret = process.env.CLIENT_SECRET;
-
-      const auth = new google.auth.OAuth2(clientId, clientSecret);
+      const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET);
       auth.setCredentials({ access_token: accessToken });
       google.options({ auth });
 
       console.log("Getting calendars...");
 
-      const calendar = google.calendar({ version: "v3" });
       const calRes = await calendar.calendarList.list();
       const calendars = calRes.data.items;
       const ids = calendars?.map((cal) => cal.id);
@@ -125,10 +124,56 @@ export const getFreeSlots = action({
 
         console.log("Free intervals: ", freeIntervals);
 
-        return freeIntervals.map((interval) => [interval[0].toLocaleString('en-US', { timeZone: 'America/New_York' }), interval[1].toLocaleString('en-US', { timeZone: 'America/New_York' })]);
+        return freeIntervals.map((interval) => [interval[0].toISOString(), interval[1].toISOString()]);
       }
 
       return [];
+    }
+  },
+});
+
+export const addEvent = action({
+  args: {
+    id: v.string(),
+    start: v.string(),
+    end: v.string(),
+    summary: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => { console.log(error) });
+    const accessToken = response?.data[0]?.token
+
+    console.log("Running addEvent...");
+
+    if (accessToken) {
+      const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET);
+      auth.setCredentials({ access_token: accessToken });
+      google.options({ auth });
+
+      console.log(args.start)
+
+      const event = {
+        summary: args.summary,
+        start: {
+          dateTime: args.start,
+        },
+        end: {
+          dateTime: args.end,
+        },
+      };
+
+      console.log("Creating event...");
+
+      const res = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+      }).catch((error) => { console.log(error) });
+
+      if (res)
+        console.log("Event created: ", res.data);
+
+      if (!res)
+        console.log("Event not created");
     }
   },
 });
