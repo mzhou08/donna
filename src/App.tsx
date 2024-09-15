@@ -14,7 +14,7 @@ export default function App() {
   return (
     <>
       <Header/>
-      <main className="container max-w-2xl flex flex-col gap-8">
+      <main className="container max-w-2xl flex flex-col gap-8 mt-10">
         <Authenticated>
           <SignedIn />
         </Authenticated>
