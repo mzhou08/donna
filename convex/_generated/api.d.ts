@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
+import type * as telegramHelper from "../telegramHelper.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +28,7 @@ import type * as http from "../http.js";
 declare const fullApi: ApiFromModules<{
   functions: typeof functions;
   http: typeof http;
+  telegramHelper: typeof telegramHelper;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

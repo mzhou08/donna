@@ -3,6 +3,7 @@ import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { createClerkClient } from "@clerk/backend";
 import { httpAction } from "./_generated/server";
+import { sendMessage } from "./telegramHelper";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -31,14 +32,27 @@ export const checkUser = query({
   },
 });
 
-export const getUserApi = httpAction(async (ctx, request) => {
-  const { phone } = await request.json();
+export const message = httpAction(async (ctx, request) => {
+  const req = await request.json();
 
-  const userData = await ctx.runQuery(api.functions.checkUser, {
-    phone: phone,
-  });
+  if (req) {
+    const message = req.message;
+    const text = message.text;
+    const phone = message.from.username;
+    const chatId = message.from.id;
 
-  return new Response(JSON.stringify(userData), {
+    const {userData} = await ctx.runQuery(api.functions.checkUser, {
+      phone: phone,
+    });
+
+    if (userData) {
+      await sendMessage(chatId, `You have been registered! Your message was ${text}`);
+    } else {
+      await sendMessage(chatId, "You have not been registered!");
+    }
+  }
+
+  return new Response(null, {
     status: 200,
   });
 });

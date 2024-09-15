@@ -1,12 +1,12 @@
 import { httpRouter } from "convex/server";
-import { getUserApi } from "./functions";
+import { message } from "./functions";
 
 const http = httpRouter();
 
 http.route({
-  path: "/getUser",
+  path: "/message",
   method: "POST",
-  handler: getUserApi,
+  handler: message,
 });
 
 export default http;
