@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
-import { createClerkClient } from "@clerk/backend";
 import { httpAction } from "./_generated/server";
 import { sendMessage } from "./telegramHelper";
 import { get } from "https";
@@ -9,7 +8,6 @@ import { get } from "https";
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
 
-const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 
 // You can read data from the database via a query:
 export const checkUser = query({
@@ -47,6 +45,8 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
+      const calendars = await ctx.runAction(api.googleIntegration.getCalendars, { id: userData.id })
+
       await sendMessage(chatId, `You have been registered! Your message was ${text}`);
     } else {
       await sendMessage(chatId, "You have not been registered!");
@@ -67,7 +67,7 @@ export const addUserData = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.string(),
-    token: v.string(),
+    agentAddress: v.string(),
   },
 
   // Mutation implementation.
@@ -82,31 +82,12 @@ export const addUserData = mutation({
       .collect();
 
     if (userData.length === 0) {
-      const agentAddress = await
-        fetch(
-          process.env.NGROK_BACKEND_URL + "/agent", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              phone: args.phone,
-              name: args.name,
-            }),
-          }
-        ).then((response) =>
-          response.json().then((data) => {
-            return data.agent_address;
-          }
-        ));
-
       const databaseId = await ctx.db.insert("users", {
         id: args.id,
         name: args.name,
         email: args.email,
         phone: args.phone,
-        token: args.token,
-        agentAddress: agentAddress,
+        agentAddress: args.agentAddress,
       });
       console.log(`Added new document with id: ${databaseId}, name: ${args.name}, email: ${args.email}, phone: ${args.phone}`);
     }
@@ -130,19 +111,32 @@ export const addUser = action({
     // const response = await ctx.fetch("https://api.thirdpartyservice.com");
     // const data = await response.json();
 
-    const provider = 'oauth_google'
-    const response = await clerkClient.users.getUserOauthAccessToken(args.id, provider).catch((error) => { console.log(error) });
+    const agentAddress = await
+      fetch(
+        process.env.NGROK_BACKEND_URL + "/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: args.phone,
+            name: args.name,
+          }),
+        }
+      ).then((response) =>
+      // {console.log(response); return "";}
+        response.json().then((data) => {
+            return data.agent_address;
+          }
+        )
+      );
 
-    if (response) {
-      console.log(response.data[0].token)
-
-      await ctx.runMutation(api.functions.addUserData, {
-        id: args.id,
-        name: args.name,
-        email: args.email,
-        phone: args.phone,
-        token: response.data[0].token,
-      });
-    }
+    await ctx.runMutation(api.functions.addUserData, {
+      id: args.id,
+      name: args.name,
+      email: args.email,
+      phone: "xavilien",  // testing purposes
+      agentAddress: agentAddress,
+    });
   },
 });

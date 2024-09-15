@@ -12,7 +12,6 @@ export default defineSchema(
       name: v.string(),
       email: v.string(),
       phone: v.string(),
-      token: v.string(),
       agentAddress: v.string(),
     }),
     userResponseStatus: defineTable({
