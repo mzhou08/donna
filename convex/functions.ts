@@ -213,6 +213,8 @@ export const message = httpAction(async (ctx, request) => {
           attendees: data.attendees,
         });
         await sendMessage(chatId, `Meet scheduled! ${data.start} to ${data.end}`);
+      } else {
+        await sendMessage(chatId, "Failed to schedule meet :( Please try again later.");
       }
     } else {
       await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);
