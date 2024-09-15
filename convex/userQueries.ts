@@ -27,7 +27,7 @@ export const userByAgentAddress = httpAction(async (ctx, request) => {
   if (req) {
     const agentAddress = req.agentAddress;
 
-    const {userData} = await ctx.runQuery(api.queries.getUserByAgentAddress, {
+    const {userData} = await ctx.runQuery(api.userQueries.getUserByAgentAddress, {
       agentAddress: agentAddress,
     });
 
@@ -84,7 +84,7 @@ export const userByName = httpAction(async (ctx, request) => {
   if (req) {
     const name = req.name;
 
-    const {userData} = await ctx.runQuery(api.queries.getUserByName, {
+    const {userData} = await ctx.runQuery(api.userQueries.getUserByName, {
       name: name,
     });
 
