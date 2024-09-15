@@ -53,6 +53,28 @@ export const getUserByPhone
   },
 });
 
+export const getAllUsersByPhone
+  = query({
+  // Validators for arguments.
+  args: {
+    phoneNumbers: v.array(v.string()),
+  },
+
+  // Query implementation.
+  handler: async (ctx, args) => {
+    //// Read the database as many times as you need here.
+    //// See https://docs.convex.dev/database/reading-data.
+    const userData = await ctx.db
+      .query("users")
+      .filter((q) => q.or(...args.phoneNumbers.map((phone) => q.eq(q.field("phone"), phone))))
+      .collect();
+
+    return {
+      userData: userData,
+    };
+  },
+});
+
 const showDate = (date: string) => {
   const d = new Date(date);
   return d.toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -89,7 +111,10 @@ export const message = httpAction(async (ctx, request) => {
         await sendMessage(chatId, "Here are your contacts:");
         for (const contact of contacts.slice(0, 3)) {
           const i = contacts.indexOf(contact);
-          await sendMessage(chatId, `Contact ${i + 1}: from ${contact.name} at ${contact.phone} and email ${contact.email}`);
+          await sendMessage(chatId, `Contact ${i + 1}: from ${contact.name} at ${contact.phone} and email ${contact.email} and agent address ${contact.agentAddress || "not available"}`);
+        }
+        if (contacts.length === 0) {
+          await sendMessage(chatId, "You have no contacts!");
         }
       }
 

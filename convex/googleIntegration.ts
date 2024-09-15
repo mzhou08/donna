@@ -4,6 +4,7 @@ import {google} from "googleapis";
 import {action} from "./_generated/server";
 import {v} from "convex/values";
 import {createClerkClient} from "@clerk/backend";
+import {api} from "./_generated/api";
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -208,13 +209,39 @@ export const getContacts = action({
 
       if (connections) {
         console.log("Contacts: ", connections);
-        return connections.map((contact) => {
+        const contacts = connections.map((contact) => {
           return {
-            name: contact.names?.[0]?.displayName,
-            email: contact.emailAddresses?.[0]?.value,
-            phone: contact.phoneNumbers?.[0]?.value,
+            id: null,
+            name: contact.names?.[0]?.displayName || "",
+            email: contact.emailAddresses?.[0]?.value || "",
+            phone: contact.phoneNumbers?.[0]?.value || "",
+            agentAddress: null,
           }
         });
+
+        const foundOutput = await ctx.runQuery(api.functions.getAllUsersByPhone, {phoneNumbers: contacts.map((contact) => contact.phone)});
+
+        const found: { id: string; name: string; phone: string; email: string; agentAddress: string; }[] = foundOutput.userData.map((user: { id: string; name: string; phone: string; email: string; agentAddress: string; }) => {
+          return {
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            email: user.email,
+            agentAddress: user.agentAddress,
+          }
+        });
+
+        let updatedContacts = [];
+        for (const contact of contacts) {
+          let foundContact = found.find((found) => found.phone === contact.phone);
+          if (foundContact) {
+            updatedContacts.push(foundContact);
+          } else {
+            updatedContacts.push(contact);
+          }
+        }
+
+        return updatedContacts;
       }
 
       if (!connections)
