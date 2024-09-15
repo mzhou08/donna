@@ -45,9 +45,15 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
-      const calendars = await ctx.runAction(api.googleIntegration.getCalendars, { id: userData.id })
+      const out = await ctx.runAction(api.googleIntegration.getCalendars, { id: userData.id });
 
-      await sendMessage(chatId, `You have been registered! Your message was ${text}`);
+      if (out) {
+        for (const event of out) {
+          const i = out.indexOf(event);
+          await sendMessage(chatId, `Event ${i + 1}: ${event}`);
+        }
+      }
+
     } else {
       await sendMessage(chatId, "You have not been registered!");
     }
