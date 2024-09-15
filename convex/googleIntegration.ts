@@ -141,7 +141,7 @@ export const getFreeSlots = httpAction(async (ctx, request) => {
 
   return new Response(
     new Blob([
-      JSON.stringify(freeSlots)
+      JSON.stringify({freeSlots: freeSlots})
     ]),
     {
       status: 200,
