@@ -1,7 +1,7 @@
 "use node";
 
 import {google} from "googleapis";
-import {action} from "./_generated/server";
+import {action, httpAction} from "./_generated/server";
 import {v} from "convex/values";
 import {createClerkClient} from "@clerk/backend";
 import {api} from "./_generated/api";
@@ -63,7 +63,7 @@ function getFreeIntervals(intervals: Date[][]) {
   return freeIntervals;
 }
 
-export const getFreeSlots = action({
+export const getFreeSlots = httpAction({
   args: { id: v.string() },
   handler: async (ctx, args) => {
     const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => { console.log(error) });
