@@ -23,10 +23,10 @@ http.route({
   handler: userByAgentAddress,
 })
 
-http.route({
-  path: "/user/response-status",
-  method: "GET",
-  handler: getUserResponseStatus,
-})
+// http.route({
+//   path: "/user/response-status",
+//   method: "GET",
+//   handler: getUserResponseStatus,
+// })
 
 export default http;

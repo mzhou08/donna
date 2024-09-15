@@ -50,7 +50,7 @@ export const message = httpAction(async (ctx, request) => {
       if (out) {
         for (const event of out) {
           const i = out.indexOf(event);
-          await sendMessage(chatId, `Event ${i + 1}: ${event}`);
+          await sendMessage(chatId, `Event ${i + 1}: ${event?.summary} from ${event?.start} to ${event?.end}`);
         }
       }
 
