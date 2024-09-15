@@ -12,19 +12,21 @@ import React, { useState } from "react";
 
 export default function App() {
   return (
-    <main className="container max-w-2xl flex flex-col gap-8">
-      <Header />
-      <Authenticated>
-        <SignedIn />
-      </Authenticated>
-      <Unauthenticated>
-        <div className="flex justify-center">
-          <SignInButton mode="modal">
-            <Button>Sign in</Button>
-          </SignInButton>
-        </div>
-      </Unauthenticated>
-    </main>
+    <>
+      <Header/>
+      <main className="container max-w-2xl flex flex-col gap-8">
+        <Authenticated>
+          <SignedIn />
+        </Authenticated>
+       <Unauthenticated>
+         <div className="flex justify-center">
+           <SignInButton mode="modal">
+             <Button>Sign in</Button>
+           </SignInButton>
+          </div>
+        </Unauthenticated>
+      </main>
+    </>
   );
 }
 
