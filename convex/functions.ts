@@ -67,6 +67,7 @@ export const addUserData = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.string(),
+    agentAddress: v.string(),
   },
 
   // Mutation implementation.
@@ -81,30 +82,12 @@ export const addUserData = mutation({
       .collect();
 
     if (userData.length === 0) {
-      const agentAddress = await
-        fetch(
-          process.env.NGROK_BACKEND_URL + "/agent", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              phone: args.phone,
-              name: args.name,
-            }),
-          }
-        ).then((response) =>
-          response.json().then((data) => {
-            return data.agent_address;
-          }
-        ));
-
       const databaseId = await ctx.db.insert("users", {
         id: args.id,
         name: args.name,
         email: args.email,
         phone: args.phone,
-        agentAddress: agentAddress,
+        agentAddress: args.agentAddress,
       });
       console.log(`Added new document with id: ${databaseId}, name: ${args.name}, email: ${args.email}, phone: ${args.phone}`);
     }
@@ -128,11 +111,32 @@ export const addUser = action({
     // const response = await ctx.fetch("https://api.thirdpartyservice.com");
     // const data = await response.json();
 
+    const agentAddress = await
+      fetch(
+        process.env.NGROK_BACKEND_URL + "/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: args.phone,
+            name: args.name,
+          }),
+        }
+      ).then((response) =>
+      // {console.log(response); return "";}
+        response.json().then((data) => {
+            return data.agent_address;
+          }
+        )
+      );
+
     await ctx.runMutation(api.functions.addUserData, {
       id: args.id,
       name: args.name,
       email: args.email,
-      phone: args.phone,
+      phone: "xavilien",  // testing purposes
+      agentAddress: agentAddress,
     });
   },
 });
