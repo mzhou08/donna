@@ -81,6 +81,11 @@ const showDate = (date: string) => {
   return d.toLocaleString('en-US', {timeZone: 'America/New_York'});
 }
 
+const showTime = (date: string) => {
+  const d = new Date(date);
+  return d.toLocaleTimeString('en-US', {timeZone: 'America/New_York'});
+}
+
 async function testIntegration(ctx: GenericActionCtx<any>, userData: {
   _id: GenericId<"users">;
   _creationTime: number;
@@ -126,6 +131,8 @@ export const getFreeSlots = httpAction(async (ctx, request) => {
   const req = await request.json();
 
   const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlotsHelper, {id: req.id});
+
+  console.log("Free slots: ", freeSlots);
 
   return new Response(
     new Blob([
@@ -186,14 +193,34 @@ export const message = httpAction(async (ctx, request) => {
       // with parameters {name, phone, command: str}
       await sendMessage(chatId, "Scheduling your meet!");
 
-      const response = await fetch(
+      let response = new Response(
+        JSON.stringify({
+          status: "success",
+          message: "This is a fake response with sample data.",
+          data: {
+            start: "9/16/2024, 4:00:00 PM",
+            end: "9/16/2024, 5:00:00 PM",
+            summary: "Meeting",
+            attendees: ["xavilien@gmail.com"]
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+
+      response = await fetch(
         process.env.NGROK_BACKEND_URL + "/schedule", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            id: userData.id,
+            user_id: userData.id,
             name: userData.name,
             phone: userData.phone,
             command: text,
@@ -221,15 +248,21 @@ export const message = httpAction(async (ctx, request) => {
       });
 
       if (response && response.status === 200) {
-        const data = await response.json();
+        let data = {
+         start: "2024-09-16T14:00:00.000Z",
+         end: "2024-09-16T15:00:00.000Z",
+        summary: "Meeting with Michael",
+        attendees: ["michael@gmail.com"],
+        }
+        data = await response.json();
         await ctx.runAction(api.googleIntegration.addEvent, {
-          id: userData.id,
+          id: "user_2m5gTqnJFbZ170ry9gkrppO4lYD",
           start: data.start,
           end: data.end,
           summary: data.summary,
           attendees: data.attendees,
         });
-        await sendMessage(chatId, `Meet scheduled! ${data.summary} on ${new Date(data.start).toDateString()} from ${data.start} to ${data.end}`);
+        await sendMessage(chatId, `Meet scheduled! ${data.summary} on ${new Date(data.start).toDateString()} from ${showTime(data.start)} to ${showTime(data.end)}`);
       } else {
         await sendMessage(chatId, "Failed to schedule meet :( Please try again later.");
       }
