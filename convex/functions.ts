@@ -90,7 +90,7 @@ async function testIntegration(ctx: GenericActionCtx<any>, userData: {
   phone: string;
   agentAddress: string;
 }, chatId: string) {
-  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlots, {id: userData.id});
+  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlotsHelper, {id: userData.id});
 
   if (freeSlots) {
     await sendMessage(chatId, "Here are the three timeslots you can book, reply with the slot number you want to book:");
@@ -165,11 +165,7 @@ export const message = httpAction(async (ctx, request) => {
           summary: data.summary,
           attendees: data.attendees,
         });
-
       }
-
-
-
     } else {
       await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);
     }

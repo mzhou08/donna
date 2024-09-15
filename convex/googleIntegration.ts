@@ -63,7 +63,7 @@ function getFreeIntervals(intervals: Date[][]) {
   return freeIntervals;
 }
 
-export const getFreeSlots = httpAction({
+export const getFreeSlotsHelper = action({
   args: { id: v.string() },
   handler: async (ctx, args) => {
     const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => { console.log(error) });
@@ -131,6 +131,23 @@ export const getFreeSlots = httpAction({
       return [];
     }
   },
+});
+
+export const getFreeSlots = httpAction(async (ctx, request) => {
+  // call getFreeSlotsHelper
+  const req = await request.json();
+
+  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlotsHelper, {id: req.id});
+
+  return new Response(
+    new Blob([
+      JSON.stringify(freeSlots)
+    ]),
+    {
+      status: 200,
+    }
+  );
+
 });
 
 export const addEvent = action({
