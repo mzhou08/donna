@@ -177,3 +177,47 @@ export const addEvent = action({
     }
   },
 });
+
+export const getContacts = action({
+  args: {id: v.string()},
+  handler: async (ctx, args) => {
+    const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => {
+      console.log(error)
+    });
+    const accessToken = response?.data[0]?.token
+
+    console.log("Running getContacts...");
+
+    if (accessToken) {
+      const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET);
+      auth.setCredentials({access_token: accessToken});
+      google.options({auth});
+
+      console.log("Getting contacts...");
+
+      const res = await google.people({version: 'v1', auth}).people.connections.list({
+        resourceName: 'people/me',
+        personFields: 'names,emailAddresses,phoneNumbers',
+      }).catch((error) => {
+        console.log(error)
+      });
+
+      const connections = res?.data.connections;
+
+      if (connections) {
+        console.log("Contacts: ", connections);
+        return connections.map((contact) => {
+          return {
+            name: contact.names?.[0]?.displayName,
+            email: contact.emailAddresses?.[0]?.value,
+            phone: contact.phoneNumbers?.[0]?.value,
+          }
+        });
+      }
+
+      if (!connections)
+        console.log("Contacts not found");
+    }
+    return [];
+  },
+});

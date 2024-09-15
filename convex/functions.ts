@@ -84,6 +84,15 @@ export const message = httpAction(async (ctx, request) => {
         await ctx.runAction(api.googleIntegration.addEvent, { id: userData.id, start: event[0], end: event[1], summary: "Meeting" });
       }
 
+      const contacts = await ctx.runAction(api.googleIntegration.getContacts, { id: userData.id });
+      if (contacts) {
+        await sendMessage(chatId, "Here are your contacts:");
+        for (const contact of contacts.slice(0, 3)) {
+          const i = contacts.indexOf(contact);
+          await sendMessage(chatId, `Contact ${i + 1}: from ${contact.name} at ${contact.phone} and email ${contact.email}`);
+        }
+      }
+
     } else {
       await sendMessage(chatId, "You have not been registered!");
     }
