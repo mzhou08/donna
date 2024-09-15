@@ -119,7 +119,7 @@ export const message = httpAction(async (ctx, request) => {
       }
 
     } else {
-      await sendMessage(chatId, "You have not been registered!");
+      await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);
     }
   }
 
