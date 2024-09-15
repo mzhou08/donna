@@ -138,6 +138,28 @@ export const getFreeSlots = httpAction(async (ctx, request) => {
 
 });
 
+export const updateChatId = mutation({
+  // Validators for arguments.
+  args: {
+    id: v.string(),
+    chatId: v.string(),
+  },
+
+  // Mutation implementation.
+  handler: async (ctx, args) => {
+    const userData = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("id"), args.id))
+      .collect();
+
+    if (userData.length > 0) {
+      await ctx.db.patch(userData[0]._id, {
+        chatId: args.chatId,
+      });
+    }
+  },
+});
+
 export const message = httpAction(async (ctx, request) => {
   const req = await request.json();
 
@@ -152,10 +174,18 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
+      // Add chatId
+      await ctx.runMutation(api.functions.updateChatId, {
+        id: userData.id,
+        chatId: `${chatId}`,
+      });
+
       // await testIntegration(ctx, userData, chatId);
 
       // send request to “schedule/{address}"
       // with parameters {name, phone, command: str}
+      await sendMessage(chatId, "Scheduling your meet!");
+
       const response = await fetch(
         process.env.NGROK_BACKEND_URL + "/schedule", {
           method: "POST",
@@ -173,7 +203,7 @@ export const message = httpAction(async (ctx, request) => {
         return null;
       });
 
-      if (response) {
+      if (response && response.status === 200) {
         const data = await response.json();
         await ctx.runAction(api.googleIntegration.addEvent, {
           id: userData.id,
@@ -182,6 +212,7 @@ export const message = httpAction(async (ctx, request) => {
           summary: data.summary,
           attendees: data.attendees,
         });
+        await sendMessage(chatId, `Meet scheduled! ${data.start} to ${data.end}`);
       }
     } else {
       await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);

@@ -13,6 +13,7 @@ export default defineSchema(
       email: v.string(),
       phone: v.string(),
       agentAddress: v.string(),
+      chatId: v.optional(v.string()),
     }),
     userResponseStatus: defineTable({
       id: v.string(),
