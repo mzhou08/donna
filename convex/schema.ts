@@ -12,7 +12,6 @@ export default defineSchema(
       name: v.string(),
       email: v.string(),
       phone: v.string(),
-      token: v.string(),
     }),
   },
   // If you ever get an error about schema mismatch

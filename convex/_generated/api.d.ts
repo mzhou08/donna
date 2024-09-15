@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as functions from "../functions.js";
+import type * as googleIntegration from "../googleIntegration.js";
 import type * as http from "../http.js";
 import type * as telegramHelper from "../telegramHelper.js";
 
@@ -27,6 +28,7 @@ import type * as telegramHelper from "../telegramHelper.js";
  */
 declare const fullApi: ApiFromModules<{
   functions: typeof functions;
+  googleIntegration: typeof googleIntegration;
   http: typeof http;
   telegramHelper: typeof telegramHelper;
 }>;

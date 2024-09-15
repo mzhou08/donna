@@ -48,6 +48,7 @@
     "cmdk": "^0.2.0",
     "convex": "^1.15.0",
     "date-fns": "^2.30.0",
+    "googleapis": "^144.0.0",
     "node-telegram-bot-api": "^0.66.0",
     "react": "^18.2.0",
     "react-day-picker": "^8.9.1",
