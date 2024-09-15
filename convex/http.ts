@@ -2,7 +2,7 @@ import { httpRouter } from "convex/server";
 import { message } from "./functions";
 import { userByAgentAddress, userByName } from "./userQueries";
 import { userResponseStatus } from "./response";
-import { freeSlots } from "./googleIntegration";
+import { getFreeSlots } from "./googleIntegration";
 
 const http = httpRouter();
 
@@ -33,7 +33,7 @@ http.route({
 http.route({
   path: "/user/free-slots",
   method: "GET",
-  handler: freeSlots,
+  handler: getFreeSlots,
 })
 
 export default http;
