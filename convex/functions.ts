@@ -1,8 +1,9 @@
-import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
-import { httpAction } from "./_generated/server";
-import { sendMessage } from "./telegramHelper";
+import { GenericId, v} from "convex/values";
+import {query, mutation, action} from "./_generated/server";
+import {api} from "./_generated/api";
+import {httpAction} from "./_generated/server";
+import {sendMessage} from "./telegramHelper";
+import {GenericActionCtx} from "convex/server";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -77,7 +78,46 @@ export const getAllUsersByPhone
 
 const showDate = (date: string) => {
   const d = new Date(date);
-  return d.toLocaleString('en-US', { timeZone: 'America/New_York' });
+  return d.toLocaleString('en-US', {timeZone: 'America/New_York'});
+}
+
+async function testIntegration(ctx: GenericActionCtx<any>, userData: {
+  _id: GenericId<"users">;
+  _creationTime: number;
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  agentAddress: string;
+}, chatId: string) {
+  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlots, {id: userData.id});
+
+  if (freeSlots) {
+    await sendMessage(chatId, "Here are the three timeslots you can book, reply with the slot number you want to book:");
+    for (const event of freeSlots.slice(0, 3)) {
+      const i = freeSlots.indexOf(event);
+      await sendMessage(chatId, `Slot ${i + 1}: from ${showDate(event[0])} to ${showDate(event[1])}`);
+    }
+    const event = freeSlots[0];
+    await ctx.runAction(api.googleIntegration.addEvent, {
+      id: userData.id,
+      start: event[0],
+      end: event[1],
+      summary: "Meeting"
+    });
+  }
+
+  const contacts = await ctx.runAction(api.googleIntegration.getContacts, {id: userData.id});
+  if (contacts) {
+    await sendMessage(chatId, "Here are your contacts:");
+    for (const contact of contacts.slice(0, 3)) {
+      const i = contacts.indexOf(contact);
+      await sendMessage(chatId, `Contact ${i + 1}: from ${contact.name} at ${contact.phone} and email ${contact.email} and agent address ${contact.agentAddress || "not available"}`);
+    }
+    if (contacts.length === 0) {
+      await sendMessage(chatId, "You have no contacts!");
+    }
+  }
 }
 
 export const message = httpAction(async (ctx, request) => {
@@ -94,29 +134,7 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
-      const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlots, { id: userData.id });
-
-      if (freeSlots) {
-        await sendMessage(chatId, "Here are the three timeslots you can book, reply with the slot number you want to book:");
-        for (const event of freeSlots.slice(0, 3)) {
-          const i = freeSlots.indexOf(event);
-          await sendMessage(chatId, `Slot ${i + 1}: from ${showDate(event[0])} to ${showDate(event[1])}`);
-        }
-        const event = freeSlots[0];
-        await ctx.runAction(api.googleIntegration.addEvent, { id: userData.id, start: event[0], end: event[1], summary: "Meeting" });
-      }
-
-      const contacts = await ctx.runAction(api.googleIntegration.getContacts, { id: userData.id });
-      if (contacts) {
-        await sendMessage(chatId, "Here are your contacts:");
-        for (const contact of contacts.slice(0, 3)) {
-          const i = contacts.indexOf(contact);
-          await sendMessage(chatId, `Contact ${i + 1}: from ${contact.name} at ${contact.phone} and email ${contact.email} and agent address ${contact.agentAddress || "not available"}`);
-        }
-        if (contacts.length === 0) {
-          await sendMessage(chatId, "You have no contacts!");
-        }
-      }
+      await testIntegration(ctx, userData, chatId);
 
     } else {
       await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);
