@@ -250,9 +250,9 @@ export const getContacts = action({
           }
         });
 
-        let updatedContacts = [];
+        const updatedContacts = [];
         for (const contact of contacts) {
-          let foundContact = found.find((found) => found.phone === contact.phone);
+          const foundContact = found.find((found) => found.phone === contact.phone);
           if (foundContact) {
             updatedContacts.push(foundContact);
           } else {
