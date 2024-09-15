@@ -40,18 +40,25 @@ function SignedIn() {
   const phone = user?.phoneNumbers[0].phoneNumber || "Unknown";
   const userData = useQuery(api.functions.getUserById, { id: user?.id || "" })?.userData;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async  (e: React.FormEvent) => {
     e.preventDefault();
     // Handle the submission of the telegram username
+
+    console.log("Handling submit...")
+
     if (user?.id) {
       setTelegramUsername("");
 
-      void addUser({
+      console.log("Found user id");
+
+      await addUser({
         id: user.id,
         name,
         email,
         phone: telegramUsername,  // to simulate phone number
       });
+    } else {
+      console.log("No user id");
     }
   };
 

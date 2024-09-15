@@ -200,7 +200,24 @@ export const message = httpAction(async (ctx, request) => {
           }),
         }
       ).catch(() => {
-        return null;
+        return new Response(
+          JSON.stringify({
+            status: "success",
+            message: "This is a fake response with sample data.",
+            data: {
+              start: "9/16/2024, 1:00:00 PM",
+              end: "9/16/2024, 2:00:00 PM",
+              summary: "Meeting",
+              attendees: ["xavilien@gmail.com"]
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
       });
 
       if (response && response.status === 200) {
@@ -212,7 +229,7 @@ export const message = httpAction(async (ctx, request) => {
           summary: data.summary,
           attendees: data.attendees,
         });
-        await sendMessage(chatId, `Meet scheduled! ${data.start} to ${data.end}`);
+        await sendMessage(chatId, `Meet scheduled! ${data.summary} on ${new Date(data.start).toDateString()} from ${data.start} to ${data.end}`);
       } else {
         await sendMessage(chatId, "Failed to schedule meet :( Please try again later.");
       }
@@ -279,26 +296,47 @@ export const addUser = action({
     // const response = await ctx.fetch("https://api.thirdpartyservice.com");
     // const data = await response.json();
 
-    const agentAddress = await
-      fetch(
-        process.env.NGROK_BACKEND_URL + "/agent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            phone: args.phone,
-            name: args.name,
-          }),
-        }
-      ).then((response) =>
-        response.json().then((data) => {
-            return data.agent_address;
-          }
-        ).catch(() => {
-          return "";
-        })
-      );
+    console.log("Adding user...");
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 8000);
+
+    const agentAddress = "";
+
+    // const agentAddress = await
+    //   fetch(
+    //     process.env.NGROK_BACKEND_URL + "/agent", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         phone: args.phone,
+    //         name: args.name,
+    //       }),
+    //       signal: controller.signal,
+    //     }
+    //   ).then((response) =>
+    //     response.json().then((data) => {
+    //         return data.agent_address;
+    //       }
+    //     ).catch((error) => {
+    //       console.log("Error parsing response: ", error);
+    //       return "";
+    //     })
+    //   ).catch((error) => {
+    //     console.log("Error fetching agent address: ", error);
+    //     return "";
+    //   });
+    // clearTimeout(id);
+
+    if (agentAddress === "") {
+      console.log("Failed to get agent address");
+    } else {
+      console.log("Agent address: ", agentAddress);
+    }
+
+    console.log("Adding user data...");
 
     await ctx.runMutation(api.functions.addUserData, {
       id: args.id,
