@@ -103,7 +103,8 @@ async function testIntegration(ctx: GenericActionCtx<any>, userData: {
       id: userData.id,
       start: event[0],
       end: event[1],
-      summary: "Meeting"
+      summary: "Meeting",
+      attendees: ["xavilien@gmail.com"]  // testing
     });
   }
 
@@ -134,7 +135,40 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
-      await testIntegration(ctx, userData, chatId);
+      // await testIntegration(ctx, userData, chatId);
+
+      // send request to “schedule/{address}"
+      // with parameters {name, phone, command: str}
+      const response = await fetch(
+        process.env.NGROK_BACKEND_URL + "/schedule", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: userData.id,
+            name: userData.name,
+            phone: userData.phone,
+            command: message.text,
+          }),
+        }
+      ).catch(() => {
+        return null;
+      });
+
+      if (response) {
+        const data = await response.json();
+        await ctx.runAction(api.googleIntegration.addEvent, {
+          id: userData.id,
+          start: data.start,
+          end: data.end,
+          summary: data.summary,
+          attendees: data.attendees,
+        });
+
+      }
+
+
 
     } else {
       await sendMessage(chatId, `You have not been registered! Go to ${process.env.FRONTEND_URL} to register.`);

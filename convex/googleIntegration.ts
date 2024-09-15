@@ -139,6 +139,7 @@ export const addEvent = action({
     start: v.string(),
     end: v.string(),
     summary: v.string(),
+    attendees: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => { console.log(error) });
@@ -161,6 +162,7 @@ export const addEvent = action({
         end: {
           dateTime: args.end,
         },
+        attendees: args.attendees.map((attendee) => ({ email: attendee })),
       };
 
       console.log("Creating event...");
