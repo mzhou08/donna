@@ -3,14 +3,36 @@ import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { sendMessage } from "./telegramHelper";
-import {addEvent} from "./googleIntegration";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
 
 
 // You can read data from the database via a query:
-export const checkUser = query({
+export const getUserById
+  = query({
+  // Validators for arguments.
+  args: {
+    id: v.string(),
+  },
+
+  // Query implementation.
+  handler: async (ctx, args) => {
+    //// Read the database as many times as you need here.
+    //// See https://docs.convex.dev/database/reading-data.
+    const userData = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("id"), args.id))
+      .collect();
+
+    return {
+      userData: userData.length > 0 ? userData[0] : null,
+    };
+  },
+});
+
+export const getUserByPhone
+  = query({
   // Validators for arguments.
   args: {
     phone: v.string(),
@@ -41,11 +63,11 @@ export const message = httpAction(async (ctx, request) => {
 
   if (req) {
     const message = req.message;
-    const text = message.text;
+    // const text = message.text;
     const phone = message.from.username;
     const chatId = message.from.id;
 
-    const {userData} = await ctx.runQuery(api.functions.checkUser, {
+    const {userData} = await ctx.runQuery(api.functions.getUserByPhone, {
       phone: phone,
     });
 
@@ -138,18 +160,19 @@ export const addUser = action({
           }),
         }
       ).then((response) =>
-      // {console.log(response); return "";}
         response.json().then((data) => {
             return data.agent_address;
           }
-        )
+        ).catch(() => {
+          return "";
+        })
       );
 
     await ctx.runMutation(api.functions.addUserData, {
       id: args.id,
       name: args.name,
       email: args.email,
-      phone: "xavilien",  // testing purposes
+      phone: args.phone,
       agentAddress: agentAddress,
     });
   },
