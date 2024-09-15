@@ -1,6 +1,6 @@
 import { httpRouter } from "convex/server";
 import { message } from "./functions";
-import { userByAgentAddress, userByName } from "./queries";
+import { userByAgentAddress, userByName } from "./userQueries";
 import { userResponseStatus } from "./response";
 import { getFreeSlots } from "./googleIntegration";
 
@@ -31,7 +31,7 @@ http.route({
 })
 
 http.route({
-  path: "/user/get-availability",
+  path: "/user/get-free-slots",
   method: "GET",
   handler: getFreeSlots,
 })
