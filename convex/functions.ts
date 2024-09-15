@@ -3,7 +3,6 @@ import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { sendMessage } from "./telegramHelper";
-import { get } from "https";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -45,12 +44,12 @@ export const message = httpAction(async (ctx, request) => {
     });
 
     if (userData) {
-      const out = await ctx.runAction(api.googleIntegration.getCalendars, { id: userData.id });
+      const out = await ctx.runAction(api.googleIntegration.getFreeSlots, { id: userData.id });
 
       if (out) {
         for (const event of out) {
           const i = out.indexOf(event);
-          await sendMessage(chatId, `Event ${i + 1}: ${event?.summary} from ${event?.start} to ${event?.end}`);
+          await sendMessage(chatId, `Event ${i + 1}: from ${event[0]} to ${event[1]}`);
         }
       }
 
