@@ -126,7 +126,7 @@ export const message = httpAction(async (ctx, request) => {
 
   if (req) {
     const message = req.message;
-    // const text = message.text;
+    const text = message.text;
     const phone = message.from.username;
     const chatId = message.from.id;
 
@@ -149,7 +149,7 @@ export const message = httpAction(async (ctx, request) => {
             id: userData.id,
             name: userData.name,
             phone: userData.phone,
-            command: message.text,
+            command: text,
           }),
         }
       ).catch(() => {
