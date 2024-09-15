@@ -121,6 +121,23 @@ async function testIntegration(ctx: GenericActionCtx<any>, userData: {
   }
 }
 
+export const getFreeSlots = httpAction(async (ctx, request) => {
+  // call getFreeSlotsHelper
+  const req = await request.json();
+
+  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlotsHelper, {id: req.id});
+
+  return new Response(
+    new Blob([
+      JSON.stringify(freeSlots)
+    ]),
+    {
+      status: 200,
+    }
+  );
+
+});
+
 export const message = httpAction(async (ctx, request) => {
   const req = await request.json();
 

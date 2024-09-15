@@ -1,8 +1,7 @@
 import { httpRouter } from "convex/server";
-import { message } from "./functions";
+import { message, getFreeSlots } from "./functions";
 import { userByAgentAddress, userByName } from "./userQueries";
 import { userResponseStatus } from "./response";
-import { getFreeSlots } from "./googleIntegration";
 
 const http = httpRouter();
 
