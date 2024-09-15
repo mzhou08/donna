@@ -37,6 +37,7 @@ export const userByAgentAddress = httpAction(async (ctx, request) => {
             JSON.stringify({
                 phone: userData.phone,
                 name: userData.name,
+                userId: userData.id,
             })
         ]),
         {
@@ -90,7 +91,10 @@ export const userByName = httpAction(async (ctx, request) => {
     if (userData) {
       return new Response(
         new Blob([
-            JSON.stringify({agentAddress: userData.agentAddress,})
+            JSON.stringify({
+              agentAddress: userData.agentAddress,
+              userId: userData.id,
+            })
         ]),
         {
             status: 200,
@@ -107,4 +111,3 @@ export const userByName = httpAction(async (ctx, request) => {
     status: 400,
   });
 });
-

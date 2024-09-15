@@ -14,6 +14,13 @@ export default defineSchema(
       phone: v.string(),
       agentAddress: v.string(),
     }),
+    userResponseStatus: defineTable({
+      id: v.string(),
+      userId: v.string(),
+      requestingUserId: v.string(),
+      request: v.optional(v.string()),
+      didRespond: v.boolean(),
+    }),
   },
   // If you ever get an error about schema mismatch
   // between your data and your schema, and you cannot
