@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { message } from "./functions";
 import { userByAgentAddress, userByName } from "./queries";
-import { getUserResponseStatus } from "./response";
+import { userResponseStatus } from "./response";
 
 const http = httpRouter();
 
@@ -23,10 +23,10 @@ http.route({
   handler: userByAgentAddress,
 })
 
-// http.route({
-//   path: "/user/response-status",
-//   method: "GET",
-//   handler: getUserResponseStatus,
-// })
+http.route({
+  path: "/user/response-status",
+  method: "GET",
+  handler: userResponseStatus,
+})
 
 export default http;
