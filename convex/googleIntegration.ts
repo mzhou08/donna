@@ -1,7 +1,7 @@
 "use node";
 
 import {google} from "googleapis";
-import {action, httpAction} from "./_generated/server";
+import {action} from "./_generated/server";
 import {v} from "convex/values";
 import {createClerkClient} from "@clerk/backend";
 import {api} from "./_generated/api";
@@ -131,23 +131,6 @@ export const getFreeSlotsHelper = action({
       return [];
     }
   },
-});
-
-export const getFreeSlots = httpAction(async (ctx, request) => {
-  // call getFreeSlotsHelper
-  const req = await request.json();
-
-  const freeSlots = await ctx.runAction(api.googleIntegration.getFreeSlotsHelper, {id: req.id});
-
-  return new Response(
-    new Blob([
-      JSON.stringify({freeSlots: freeSlots})
-    ]),
-    {
-      status: 200,
-    }
-  );
-
 });
 
 export const addEvent = action({
