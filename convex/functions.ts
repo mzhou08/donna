@@ -4,6 +4,7 @@ import { api } from "./_generated/api";
 import { createClerkClient } from "@clerk/backend";
 import { httpAction } from "./_generated/server";
 import { sendMessage } from "./telegramHelper";
+import { get } from "https";
 
 // Write your Convex functions in any file inside this directory (`convex`).
 // See https://docs.convex.dev/functions for more.
@@ -81,12 +82,31 @@ export const addUserData = mutation({
       .collect();
 
     if (userData.length === 0) {
+      const agentAddress = await
+        fetch(
+          process.env.NGROK_BACKEND_URL + "/agent", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              phone: args.phone,
+              name: args.name,
+            }),
+          }
+        ).then((response) =>
+          response.json().then((data) => {
+            return data.agent_address;
+          }
+        ));
+
       const databaseId = await ctx.db.insert("users", {
         id: args.id,
         name: args.name,
         email: args.email,
         phone: args.phone,
         token: args.token,
+        agentAddress: agentAddress,
       });
       console.log(`Added new document with id: ${databaseId}, name: ${args.name}, email: ${args.email}, phone: ${args.phone}`);
     }

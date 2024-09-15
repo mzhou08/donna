@@ -13,6 +13,7 @@ export default defineSchema(
       email: v.string(),
       phone: v.string(),
       token: v.string(),
+      agentAddress: v.string(),
     }),
   },
   // If you ever get an error about schema mismatch
