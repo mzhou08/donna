@@ -179,7 +179,9 @@ export const addEvent = action({
 });
 
 export const getContacts = action({
-  args: {id: v.string()},
+  args: {
+    id: v.string()
+  },
   handler: async (ctx, args) => {
     const response = await clerkClient.users.getUserOauthAccessToken(args.id, 'oauth_google').catch((error) => {
       console.log(error)
