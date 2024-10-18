@@ -99,7 +99,7 @@ async function testIntegration(ctx: GenericActionCtx<any>, userData: {
 
   if (freeSlots) {
     await sendMessage(chatId, "Here are the three timeslots you can book, reply with the slot number you want to book:");
-    for (const event of freeSlots.slice(0, 3)) {
+    for (const event of freeSlots) {
       const i = freeSlots.indexOf(event);
       await sendMessage(chatId, `Slot ${i + 1}: from ${showDate(event[0])} to ${showDate(event[1])}`);
     }
@@ -187,7 +187,7 @@ export const message = httpAction(async (ctx, request) => {
         chatId: `${chatId}`,
       });
 
-      // await testIntegration(ctx, userData, chatId);
+      await testIntegration(ctx, userData, chatId);
 
       // send request to “schedule/{address}"
       // with parameters {name, phone, command: str}
